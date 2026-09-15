@@ -1,0 +1,834 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>RARI FRIENDS — every friend has a wallet and a vote</title>
+<meta name="description" content="1024 friends. Each one gets its own wallet and one vote. You hold the picture. It holds the money.">
+<meta property="og:title" content="RARI FRIENDS">
+<meta property="og:description" content="You buy the friend. The friend gets a wallet and a vote. After that it is not your money.">
+<meta property="og:image" content="assets/og.png">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" href="assets/favicon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400..700&family=Outfit:wght@300..900&family=Chivo+Mono:wght@300..700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --violet:#7718FA; --violet-d:#4A0FB0; --violet-l:#A66BFF;
+  --ink:#150826; --paper:#F1EAFF; --paper2:#E2D6FF;
+  --yellow:#FFD836; --red:#FF4767; --white:#fff;
+  --bd:4px solid var(--ink);
+}
+*{box-sizing:border-box}
+html{overflow-x:clip}
+body{
+  margin:0; overflow-x:clip; background:var(--paper); color:var(--ink);
+  font-family:"Outfit",system-ui,-apple-system,Segoe UI,Roboto,sans-serif;
+  font-size:17px; line-height:1.62; -webkit-font-smoothing:antialiased;
+  background-image:
+    linear-gradient(rgba(119,24,250,.07) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(119,24,250,.07) 1px,transparent 1px);
+  background-size:26px 26px;
+}
+img,canvas{max-width:100%}
+a{color:inherit}
+.wrap{width:min(1220px,100% - 40px); margin-inline:auto}
+.px{font-family:"Pixelify Sans",monospace}
+.mono{font-family:"Chivo Mono",ui-monospace,monospace}
+
+/* ---------- top bar ---------- */
+#bar{position:sticky; top:0; z-index:60; background:var(--ink); color:var(--paper);
+  border-bottom:4px solid var(--violet); padding:9px 0}
+#bar .in{display:flex; align-items:center; gap:14px; flex-wrap:wrap}
+#bar .logo{font-family:"Pixelify Sans",monospace; font-size:24px; font-weight:700; letter-spacing:.06em; line-height:1}
+#bar .logo b{color:var(--yellow)}
+#bar .sp{flex:1}
+.tbtn{font-family:"Chivo Mono",monospace; font-size:12px; letter-spacing:.1em; text-transform:uppercase;
+  background:transparent; color:var(--paper); border:2px solid rgba(241,234,255,.4); border-radius:0;
+  padding:7px 11px; cursor:pointer}
+.tbtn:hover{border-color:var(--yellow); color:var(--yellow)}
+#caBox{font-family:"Chivo Mono",monospace; font-size:12px; letter-spacing:.06em; cursor:pointer;
+  border:2px dashed rgba(241,234,255,.42); padding:6px 11px}
+#caBox b{color:var(--yellow); font-weight:500}
+
+/* ---------- marquee ---------- */
+#mq{background:var(--yellow); color:var(--ink); border-bottom:4px solid var(--ink); overflow:hidden; white-space:nowrap}
+#mq div{display:inline-block; padding:7px 0; animation:mq 34s linear infinite;
+  font-family:"Chivo Mono",monospace; font-size:13px; letter-spacing:.14em; text-transform:uppercase}
+#mq span{padding:0 20px}
+#mq i{font-style:normal; color:var(--violet)}
+@keyframes mq{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+
+/* ---------- hero ---------- */
+#hero{padding:52px 0 64px; position:relative}
+.hin{display:grid; grid-template-columns:1.06fr .94fr; gap:46px; align-items:center}
+.kick{font-family:"Chivo Mono",monospace; font-size:12.5px; letter-spacing:.2em; text-transform:uppercase;
+  color:var(--violet-d); display:flex; align-items:center; gap:10px; margin-bottom:14px}
+.kick em{font-style:normal; background:var(--ink); color:var(--yellow); padding:3px 8px}
+h1.mark{
+  font-family:"Pixelify Sans",monospace; font-weight:700; margin:0; line-height:.86;
+  font-size:clamp(54px,8.6vw,112px); letter-spacing:.005em; color:var(--white);
+  -webkit-text-stroke:9px var(--ink); paint-order:stroke fill;
+  filter:drop-shadow(0 8px 0 var(--violet)) drop-shadow(0 16px 0 var(--violet-d));
+}
+h1.mark span{color:var(--yellow)}
+.slog{font-size:clamp(19px,2.1vw,25px); font-weight:700; margin:26px 0 16px; max-width:20em; line-height:1.3}
+.lore p{margin:0 0 13px; max-width:34em; color:#31184f}
+.lore p b{background:linear-gradient(transparent 62%,var(--yellow) 62%); font-weight:700}
+.cta{display:flex; gap:13px; flex-wrap:wrap; margin-top:24px}
+.btn{display:inline-flex; align-items:center; gap:9px; cursor:pointer; text-decoration:none;
+  font-family:"Pixelify Sans",monospace; font-size:21px; letter-spacing:.03em;
+  padding:13px 22px; border:var(--bd); background:var(--yellow); color:var(--ink);
+  box-shadow:0 6px 0 var(--ink); transition:box-shadow .09s,translate .09s}
+.btn:active{translate:0 4px; box-shadow:0 2px 0 var(--ink)}
+.btn.alt{background:var(--violet); color:#fff}
+.btn.soon{background:#cfc4e4; color:#6c6382; cursor:default}
+.btn.soon:active{translate:0; box-shadow:0 6px 0 var(--ink)}
+
+.stage{position:relative}
+.stage .frame{background:var(--violet); border:var(--bd); box-shadow:12px 12px 0 var(--violet-d);
+  padding:18px; position:relative; overflow:hidden}
+.stage .frame:before{content:""; position:absolute; inset:0;
+  background:radial-gradient(circle at 50% 42%,rgba(255,255,255,.22),transparent 58%)}
+#heroCv{display:block; width:100%; height:auto; cursor:pointer; position:relative; z-index:2}
+.tag{position:absolute; z-index:5; font-family:"Chivo Mono",monospace; font-size:11.5px; letter-spacing:.12em;
+  text-transform:uppercase; background:var(--ink); color:var(--yellow); padding:7px 11px; border:3px solid var(--yellow)}
+.tag.a{top:-14px; right:18px; rotate:4deg}
+.tag.b{bottom:12px; left:12px; rotate:-3deg; background:var(--yellow); color:var(--ink); border-color:var(--ink)}
+.nameplate{margin-top:14px; display:flex; justify-content:space-between; align-items:center; gap:12px;
+  border:var(--bd); background:var(--white); padding:10px 14px; box-shadow:6px 6px 0 var(--ink)}
+.nameplate .n{font-family:"Pixelify Sans",monospace; font-size:26px; line-height:1}
+.nameplate .w{font-family:"Chivo Mono",monospace; font-size:12px; color:#5a4a78; letter-spacing:.04em}
+#drop{position:absolute; inset:0; pointer-events:none; z-index:8; overflow:visible}
+.coin{position:absolute; width:16px; height:16px; background:var(--yellow); border:3px solid var(--ink)}
+.coin.v{background:var(--white)}
+
+/* ---------- section chrome ---------- */
+section{padding:66px 0}
+.sechead{display:flex; align-items:flex-end; gap:18px; flex-wrap:wrap; margin-bottom:30px;
+  border-bottom:5px solid var(--ink); padding-bottom:14px}
+.sechead h2{font-family:"Pixelify Sans",monospace; font-size:clamp(34px,5vw,58px); margin:0; line-height:.9;
+  letter-spacing:.02em}
+.sechead p{margin:0; max-width:36em; color:#3d2460; font-size:16px}
+.num{font-family:"Chivo Mono",monospace; font-size:13px; letter-spacing:.16em; background:var(--ink);
+  color:var(--yellow); padding:5px 10px; align-self:center}
+
+/* ---------- registry ---------- */
+#registry{background:var(--ink); color:var(--paper); border-block:6px solid var(--violet)}
+#registry .sechead{border-color:var(--violet)}
+#registry .sechead p{color:#c9b6ef}
+.reg{display:grid; grid-template-columns:repeat(6,1fr); gap:16px}
+.card{background:var(--violet); border:4px solid var(--ink); box-shadow:0 0 0 3px var(--violet-l);
+  padding:12px 10px 10px; cursor:pointer; text-align:center; position:relative;
+  transition:translate .12s, box-shadow .12s}
+.card:hover{translate:0 -7px; box-shadow:0 0 0 3px var(--yellow), 0 10px 0 rgba(0,0,0,.35)}
+.card canvas{display:block; width:100%; height:auto; min-width:0}
+.card .nm{font-family:"Pixelify Sans",monospace; font-size:19px; color:#fff; margin-top:8px; line-height:1}
+.card .id{font-family:"Chivo Mono",monospace; font-size:10.5px; color:#dcc8ff; letter-spacing:.1em}
+.card.dim{opacity:.45}
+.regfoot{display:flex; gap:14px; flex-wrap:wrap; align-items:center; margin-top:26px;
+  font-family:"Chivo Mono",monospace; font-size:13px; color:#c9b6ef; letter-spacing:.06em}
+
+/* ---------- file overlay ---------- */
+#ov{position:fixed; inset:0; z-index:200; display:none; align-items:center; justify-content:center;
+  background:rgba(21,8,38,.82); padding:20px}
+#ov.on{display:flex}
+.file{width:min(860px,100%); max-height:88svh; overflow:auto; background:var(--paper); border:5px solid var(--ink);
+  box-shadow:14px 14px 0 var(--violet); position:relative}
+.file .top{background:var(--ink); color:var(--paper); padding:12px 18px; display:flex; align-items:center;
+  gap:12px; position:sticky; top:0; z-index:3}
+.file .top .t{font-family:"Chivo Mono",monospace; font-size:12px; letter-spacing:.18em; text-transform:uppercase}
+.file .top .x{margin-left:auto; background:var(--red); color:#fff; border:3px solid var(--paper);
+  font-family:"Pixelify Sans",monospace; font-size:18px; width:36px; height:32px; cursor:pointer; line-height:1}
+.file .body{display:grid; grid-template-columns:230px 1fr; gap:22px; padding:22px}
+.file .port{background:var(--violet); border:4px solid var(--ink); padding:14px; align-self:start;
+  box-shadow:7px 7px 0 var(--ink)}
+.file .port canvas{display:block; width:100%; height:auto}
+.file h3{font-family:"Pixelify Sans",monospace; font-size:44px; margin:0 0 2px; line-height:.92}
+.file .sub{font-family:"Chivo Mono",monospace; font-size:12px; letter-spacing:.12em; color:var(--violet-d);
+  text-transform:uppercase; margin-bottom:14px}
+.rows{border:3px solid var(--ink); background:#fff; margin:14px 0}
+.rows div{display:flex; gap:12px; padding:8px 13px; border-bottom:2px dashed #cdbdea; font-family:"Chivo Mono",monospace; font-size:13px}
+.rows div:last-child{border-bottom:0}
+.rows div b{min-width:112px; color:#6b5590; font-weight:400; letter-spacing:.08em; text-transform:uppercase; font-size:11px; padding-top:2px}
+.rows div span{color:var(--ink)}
+.quote{border-left:7px solid var(--violet); padding-left:15px; font-size:16.5px; color:#2d1a4b}
+.filenav{display:flex; gap:10px; padding:0 22px 22px}
+.filenav button{font-family:"Pixelify Sans",monospace; font-size:17px; padding:9px 16px; border:4px solid var(--ink);
+  background:#fff; cursor:pointer; box-shadow:0 5px 0 var(--ink)}
+.filenav button:active{translate:0 3px; box-shadow:0 2px 0 var(--ink)}
+.filenav .r{margin-left:auto; background:var(--yellow)}
+
+/* ---------- floor ---------- */
+.prop{border:var(--bd); background:#fff; box-shadow:8px 8px 0 var(--violet); margin-bottom:18px; overflow:hidden}
+.prop .h{display:flex; gap:14px; align-items:center; padding:13px 17px; background:var(--paper2);
+  border-bottom:4px solid var(--ink); flex-wrap:wrap}
+.prop .h .pid{font-family:"Chivo Mono",monospace; font-size:12px; letter-spacing:.14em; background:var(--ink);
+  color:var(--yellow); padding:4px 9px}
+.prop .h .tt{font-family:"Pixelify Sans",monospace; font-size:22px; line-height:1.05; flex:1; min-width:200px}
+.stamp{font-family:"Pixelify Sans",monospace; font-size:17px; padding:4px 12px; border:3px solid var(--ink);
+  rotate:-4deg; background:var(--violet); color:#fff}
+.stamp.no{background:var(--red)}
+.prop .b{padding:15px 17px}
+.bars{display:grid; gap:9px; margin-bottom:12px}
+.bar{display:flex; align-items:center; gap:12px; font-family:"Chivo Mono",monospace; font-size:12px; letter-spacing:.1em}
+.bar b{min-width:74px; font-weight:400; text-transform:uppercase; color:#6b5590}
+.bar .track{flex:1; height:20px; border:3px solid var(--ink); background:#fff; position:relative; overflow:hidden; min-width:0}
+.bar .fill{position:absolute; inset:0 auto 0 0; width:0; background:var(--violet); transition:width 1.1s cubic-bezier(.2,.8,.2,1)}
+.bar.against .fill{background:var(--red)}
+.bar .val{min-width:56px; text-align:right}
+.prop .say{display:flex; gap:12px; align-items:flex-start; margin-top:10px; color:#3d2460; font-size:16px}
+.prop .say canvas{width:46px; height:auto; flex:none; background:var(--violet); border:3px solid var(--ink); padding:3px}
+
+/* ---------- how ---------- */
+#how{background:var(--violet); color:#fff; border-block:6px solid var(--ink)}
+#how .sechead{border-color:#fff}
+#how .sechead p{color:#efe4ff}
+.pins{display:grid; grid-template-columns:repeat(4,1fr); gap:18px}
+.pin{background:var(--paper); color:var(--ink); border:4px solid var(--ink); box-shadow:0 8px 0 var(--violet-d); padding:18px}
+.pin .k{font-family:"Chivo Mono",monospace; font-size:11px; letter-spacing:.18em; color:var(--violet-d)}
+.pin h4{font-family:"Pixelify Sans",monospace; font-size:27px; margin:4px 0 9px; line-height:1}
+.pin p{margin:0; font-size:15.6px; color:#35204f}
+
+/* ---------- numbers ---------- */
+.specs{display:grid; grid-template-columns:repeat(2,1fr); gap:18px}
+.spec{border:var(--bd); background:#fff; padding:18px 20px; box-shadow:7px 7px 0 var(--ink)}
+.spec .t{display:flex; align-items:baseline; gap:12px; margin-bottom:8px}
+.spec .t h4{font-family:"Pixelify Sans",monospace; font-size:26px; margin:0}
+.spec .t em{font-style:normal; font-family:"Chivo Mono",monospace; font-size:13px; background:var(--yellow);
+  padding:3px 9px; border:2px solid var(--ink); letter-spacing:.08em}
+.spec p{margin:0; font-size:16px; color:#35204f}
+
+/* ---------- strip ---------- */
+#strip{background:var(--ink); padding:26px 0; overflow:hidden; border-block:5px solid var(--violet)}
+#stripRow{display:flex; gap:26px; align-items:flex-end; animation:mq 26s linear infinite; width:max-content}
+#stripRow canvas{height:74px; width:auto}
+
+/* ---------- footer ---------- */
+footer{background:var(--ink); color:#c9b6ef; padding:40px 0 60px; text-align:center}
+footer .fm{font-family:"Pixelify Sans",monospace; font-size:40px; color:#fff; line-height:1}
+footer .fm span{color:var(--yellow)}
+footer p{max-width:44em; margin:14px auto 0; font-size:15px}
+footer .links{display:flex; gap:12px; justify-content:center; margin-top:20px; flex-wrap:wrap}
+
+#rain{position:fixed; inset:0; pointer-events:none; z-index:150}
+
+@media (min-width:1001px) and (max-height:860px){
+  #hero{padding:26px 0 36px}
+  .hin{gap:34px}
+  h1.mark{font-size:clamp(44px,5.2vw,74px); -webkit-text-stroke-width:7px}
+  .slog{font-size:19px; margin:18px 0 12px}
+  .lore p{font-size:15.5px; margin-bottom:10px}
+  .cta{margin-top:18px}
+  .btn{font-size:18px; padding:11px 18px}
+  .stage .frame{max-width:320px; margin-left:auto}
+  .stage .tag.a{right:8px}
+  .nameplate{max-width:320px; margin-left:auto}
+}
+@media (min-width:1001px) and (max-height:700px){
+  #hero{padding:18px 0 26px}
+  h1.mark{font-size:clamp(40px,4.4vw,58px); -webkit-text-stroke-width:6px}
+  .kick{margin-bottom:9px}
+  .slog{font-size:17px; margin:26px 0 9px}
+  .nameplate .w{font-size:10.5px; white-space:nowrap}
+  .lore p{font-size:14.6px; line-height:1.5; margin-bottom:8px}
+  .cta{margin-top:13px}
+  .btn{font-size:16px; padding:9px 15px}
+  .stage .frame{max-width:250px; padding:12px}
+  .nameplate{max-width:250px; margin-top:10px; padding:8px 11px}
+  .nameplate .n{font-size:20px}
+}
+@media(max-width:1000px){
+  .hin{grid-template-columns:1fr; gap:30px}
+  .hin>div:last-child{order:-1}
+  .stage .frame,.nameplate{max-width:330px; margin-inline:auto}
+  .stage .tag.a{right:calc(50% - 165px)}
+  .hin>div:first-child{display:flex; flex-direction:column}
+  .hin>div:first-child .cta{order:2; margin-top:18px}
+  .hin>div:first-child .lore{order:3; margin-top:18px}
+  .reg{grid-template-columns:repeat(3,1fr)}
+  .pins,.specs{grid-template-columns:repeat(2,1fr)}
+  .file .body{grid-template-columns:1fr}
+  .file .port{max-width:220px}
+}
+@media(max-width:560px){
+  body{font-size:16px}
+  .wrap{width:min(1220px,100% - 26px)}
+  .reg{grid-template-columns:repeat(2,1fr)}
+  .pins,.specs{grid-template-columns:1fr}
+  h1.mark{-webkit-text-stroke-width:6px}
+  section{padding:46px 0}
+  #bar .logo{font-size:20px}
+  #bar .in{gap:8px}
+  .tbtn{font-size:10.5px; padding:5px 8px}
+  #caBox{font-size:10.5px; padding:5px 8px}
+  .stage .frame,.nameplate{max-width:288px}
+  .stage .tag.a{right:calc(50% - 144px); top:-12px}
+  .tag{font-size:10px; padding:5px 8px}
+  .nameplate .n{font-size:22px}
+  #hero{padding:30px 0 42px}
+  .file .body{padding:16px}
+  .filenav{padding:0 16px 16px; flex-wrap:wrap}
+  .filenav .r{margin-left:0}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important; transition:none!important}}
+</style>
+</head>
+<body>
+
+<script>
+/* ============ SETTINGS ============ */
+window.CONTRACT = "";      /* адрес контракта */
+window.TWITTER  = "";      /* ссылка на X */
+window.BUY_URL  = "";      /* ссылка на покупку */
+/* ================================== */
+</script>
+
+<div id="bar"><div class="wrap in">
+  <div class="logo">RARI <b>FRIENDS</b></div>
+  <div id="caBox">CA <b class="ca-val">not live yet</b></div>
+  <div class="sp"></div>
+  <button class="tbtn" id="sfxBtn">Sound: on</button>
+  <button class="tbtn" id="musBtn">Music: off</button>
+  <a class="tbtn xLink" id="xBtn" href="#" target="_blank" rel="noopener">X</a>
+</div></div>
+
+<div id="mq"><div id="mqIn"></div></div>
+
+<section id="hero"><div class="wrap hin">
+  <div>
+    <div class="kick"><em>1024 friends</em> every one of them holds a wallet</div>
+    <h1 class="mark">RARI<br><span>FRIENDS</span></h1>
+    <div class="slog">You buy the friend. The friend gets a wallet and one vote. After that it is not really your money.</div>
+    <div class="lore">
+      <p>Every friend ships with a wallet of its own, and the fees from every trade land in <b>that</b> wallet instead of yours. You hold the picture and the picture holds the balance, which is a distinction people tend to discover late.</p>
+      <p>Every friend also gets exactly one vote on what happens to the pile. Twelve of them are awake so far and they have been voting all week without pausing once to ask how you feel about it.</p>
+    </div>
+    <div class="cta">
+      <a class="btn soon" id="buyBtn" href="#">BUY $RARI</a>
+      <a class="btn alt" href="#registry">OPEN THE REGISTRY</a>
+    </div>
+  </div>
+  <div class="stage">
+    <div class="tag a">they hold · you wait</div>
+    <div class="frame">
+      <canvas id="heroCv" width="520" height="560" aria-label="a pixel friend standing in its frame, both eyes following you"></canvas>
+      <div id="drop"></div>
+      <div class="tag b">poke him · he pays</div>
+    </div>
+    <div class="nameplate">
+      <div><div class="n" id="hName">GAVEL</div><div class="w mono" id="hWallet">0x0000…0000</div></div>
+      <button class="tbtn" id="nextFriend" style="color:var(--ink);border-color:var(--ink)">NEXT ▸</button>
+    </div>
+  </div>
+</div></section>
+
+<section id="registry"><div class="wrap">
+  <div class="sechead">
+    <h2>THE REGISTRY</h2>
+    <span class="num">12 / 1024 ACTIVATED</span>
+    <p>These twelve woke up first, took a wallet each and formed a committee before anybody thought to stop them. Click one to open its file.</p>
+  </div>
+  <div class="reg" id="reg"></div>
+  <div class="regfoot">
+    <button class="tbtn" id="randBtn" style="border-color:var(--yellow);color:var(--yellow)">▸ MEET A RANDOM FRIEND</button>
+    <span id="regCount">files opened 0 / 12</span>
+  </div>
+</div></section>
+
+<section id="floor"><div class="wrap">
+  <div class="sechead">
+    <h2>THE FLOOR</h2>
+    <span class="num">SESSION 14</span>
+    <p>Everything the committee has passed this week. Your one vote is in there somewhere, on the losing side of all of it.</p>
+  </div>
+  <div id="props"></div>
+</div></section>
+
+<section id="how"><div class="wrap">
+  <div class="sechead">
+    <h2>HOW IT RUNS</h2>
+    <p>Four steps, and only the first one involves you.</p>
+  </div>
+  <div class="pins">
+    <div class="pin"><div class="k">STEP 01</div><h4>THE FRIEND</h4><p>You pick a friend and it moves in. It is polite about it, it says thank you, and it never once mentions the wallet it arrives with.</p></div>
+    <div class="pin"><div class="k">STEP 02</div><h4>THE WALLET</h4><p>Fees from every trade drip into that wallet all day long. The balance goes up, the friend gets heavier, and nothing about this reaches your side of the screen.</p></div>
+    <div class="pin"><div class="k">STEP 03</div><h4>THE VOTE</h4><p>Once a week the committee sits down and decides what the pile is for. Holders get one vote each, which is exactly as many as every friend in the room already has.</p></div>
+    <div class="pin"><div class="k">STEP 04</div><h4>THE SPLIT</h4><p>Whatever survives the session gets shared out among everyone who was still holding at the gavel. Whatever does not survive is now a rock.</p></div>
+  </div>
+</div></section>
+
+<div id="strip"><div id="stripRow"></div></div>
+
+<section id="numbers"><div class="wrap">
+  <div class="sechead">
+    <h2>THE NUMBERS</h2>
+    <span class="num">MINUTES · FILED</span>
+    <p>Read into the record by the chair, who then refused to take questions.</p>
+  </div>
+  <div class="specs">
+    <div class="spec"><div class="t"><h4>SUPPLY</h4><em>1,024 friends</em></div><p>One thousand and twenty four, and that number was voted on before any of you got here. A motion to mint more was raised once and the room went very quiet.</p></div>
+    <div class="spec"><div class="t"><h4>LIQUIDITY</h4><em>burned</em></div><p>The key went into the fire during the second session, on a show of hands nobody counted. It was described in the minutes as a gesture of trust.</p></div>
+    <div class="spec"><div class="t"><h4>TAX</h4><em>0 / 0</em></div><p>Nothing is taken on the way in and nothing on the way out, which sounds generous until you remember where the trading fees were already going.</p></div>
+    <div class="spec"><div class="t"><h4>OWNERSHIP</h4><em>renounced</em></div><p>Handed over to the committee, unanimously, at a meeting that lasted four seconds. They thanked themselves and moved straight on to the next item.</p></div>
+  </div>
+</div></section>
+
+<footer><div class="wrap">
+  <div class="fm">RARI <span>FRIENDS</span></div>
+  <p>Twelve awake, one thousand and twelve still asleep, and a treasury that answers to all of them before it answers to you.</p>
+  <div class="links">
+    <a class="tbtn xLink" href="#" target="_blank" rel="noopener">X / TWITTER</a>
+    <a class="tbtn" href="#registry">REGISTRY</a>
+    <a class="tbtn" href="#floor">THE FLOOR</a>
+  </div>
+</div></footer>
+
+<div id="ov"><div class="file" role="dialog" aria-modal="true">
+  <div class="top"><span class="t">FRIEND FILE</span><span class="t" id="fTop">— / 12</span><button class="x" id="fClose">×</button></div>
+  <div class="body">
+    <div class="port"><canvas id="fCv" width="300" height="330"></canvas></div>
+    <div>
+      <h3 id="fName">—</h3>
+      <div class="sub" id="fSub">—</div>
+      <div class="rows" id="fRows"></div>
+      <div class="quote" id="fQuote">—</div>
+    </div>
+  </div>
+  <div class="filenav">
+    <button id="fPrev">◂ PREV</button>
+    <button id="fNext">NEXT ▸</button>
+    <button class="r" id="fPoke">POKE HIM</button>
+  </div>
+</div></div>
+
+<div id="rain"></div>
+
+<script>
+/* ================= pixel friends ================= */
+var GRIDS=["011000000011/011100000111/011110001111/011110001111/001111111110/001111111110/001111110110/001001100010/001001110110/001111111110/111111111111/110111111101/000111111100/000110001100","0000111111110000/0001111111111000/0011111111111100/1111111111111111/1111111111011111/1111001110001111/0011001111001100/0011111111011100/0011111111111100/0011111111111100/0111111111111110/0111111111111110/0001110000111000/0001110000111000","0000111110000/0001111111000/0011111111100/0011111111100/0011111101100/0011011000100/0011011101100/0011111111100/0011111111100/0111111111110/0111111111110/1111111111111/1101111111011/0001111111000/0001100011000/0011100011100","01100000000110/01110000001110/01111111111110/00111111111100/00111111101100/00100111000100/00100111101100/01111111111110/11111111111111/11011111111011/00011111111000/00011000011000","0011111111100/0011111111100/1111111111111/1111111111111/0011111101100/0010011000100/0010011101100/0011111111100/0111111111100/1111111111111/1111111111111/0011100011100/0011100011100","0000000110000000/0000011110011000/0001111111111100/0001111111111100/0011111111111110/0011111111111110/0011111111101110/0011001111000110/0011001111000110/0011111111101110/0011111111111110/1111111111111111/1111111111111111/1111111111111111/0001110000011100/0001110000011100","0000000011000/0000001111000/0000001000000/0000001000000/0000001000000/0000011110000/0000111111000/0001111111100/0011111111110/0011111110110/0010011100010/0010011100010/0011111110110/1111111111111/1111111111111/1111111111111/0011100001110/0011100001110","000011111110000/000111111111000/001111111111100/111111111111111/111111111111111/111100111101111/001100111000100/001111111101100/001111111111100/001111111111100/001111111111100/000011000111000/000011000111000","011000000110/111000000111/111000000111/111111111111/011111111110/011111111110/011111110110/010011100010/011111110110/011111111110/111111111111/011111111110/011100001110","0000000110000000/0000000110000000/0000110111000000/0000111111110000/0000111111110000/0001111111111000/0011111111111100/0011111111111100/0011111111001100/0011001110000100/0011001110001100/0011111111111100/1111111111111111/1111111111111111/0001111111111000/0001111111111000/0001110000111000","001100001110/001100001110/001100001110/001100001110/001100001110/001111111110/001111111110/001111111110/001111110110/001001100010/001001110110/011111111111/111111111111/110111111101/000111111100/000110001100/001110001110","0000111110000/0001111111000/0011111111100/1111111111111/1111111101111/1110011000111/0011111101100/0011111111100/0011111111100/0001100011000/0001100011000"];
+
+var FR=[];
+(function(){
+  for(var k=0;k<GRIDS.length;k++){
+    var rows=GRIDS[k].split("/"), H=rows.length, W=rows[0].length;
+    var m=[]; for(var j=0;j<H;j++){ var r=[]; for(var i=0;i<W;i++) r.push(rows[j].charCodeAt(i)===49?1:0); m.push(r); }
+    /* flood outside to separate background from eye holes */
+    var out=[]; for(j=0;j<H;j++){ out.push(new Array(W).fill(0)); }
+    var st=[];
+    for(i=0;i<W;i++){ if(!m[0][i]) st.push([0,i]); if(!m[H-1][i]) st.push([H-1,i]); }
+    for(j=0;j<H;j++){ if(!m[j][0]) st.push([j,0]); if(!m[j][W-1]) st.push([j,W-1]); }
+    while(st.length){
+      var p=st.pop(), y=p[0], x=p[1];
+      if(y<0||x<0||y>=H||x>=W||out[y][x]||m[y][x]) continue;
+      out[y][x]=1;
+      st.push([y+1,x]); st.push([y-1,x]); st.push([y,x+1]); st.push([y,x-1]);
+    }
+    var holes=[], solid=[];
+    for(j=0;j<H;j++) for(i=0;i<W;i++){
+      if(m[j][i]) solid.push([j,i]);
+      else if(!out[j][i]){ holes.push([j,i]); solid.push([j,i]); }
+    }
+    FR.push({w:W,h:H,solid:solid,holes:holes,m:m});
+  }
+})();
+
+var NAMES=["GAVEL","CHAIR","MINUTES","PROXY","MOTION","QUORUM","AGENDA","SECOND","VETO","TABLED","RECESS","ABSTAIN"];
+var ROLES=["holds the hammer","runs the room","writes it down","votes for you","opens the item","counts the heads","sets the order","agrees with everything","kills the item","postpones forever","calls the break","looks away"];
+var HOLD=[
+  "4.11 ETH · 1 rock","2.86 ETH · 3 jpegs","0.94 ETH · 9,400 notes","6.02 ETH · your vote","1.77 ETH · 1 gavel","3.40 ETH · 512 hands",
+  "2.05 ETH · 41 items","0.66 ETH · a lot of yes","5.31 ETH · 8 dead motions","1.19 ETH · next week","0.88 ETH · one long lunch","7.44 ETH · nothing spent"];
+var RECORD=[
+  "for 41 · against 0 · absent 0","for 39 · against 2 · absent 0","for 41 · against 0 · abstained 0","for 41 · against 0 · yours 1",
+  "for 40 · against 1 · absent 0","for 41 · against 0 · counted twice","for 38 · against 3 · absent 0","for 41 · against 0 · never reads",
+  "for 12 · against 29 · absent 0","for 6 · against 0 · deferred 35","for 41 · against 0 · absent 11","for 0 · against 0 · abstained 41"];
+var QUOTES=[
+  "i bring the hammer down and the item is closed, and that is the whole of my job description. people think the hammer is ceremonial. it is not ceremonial, it is the part that actually ends things.",
+  "i decide who gets to speak and for how long, and i have never once needed to raise my voice to do it. your hand has been up since tuesday. i have seen it. it is noted.",
+  "everything said in this room goes into the book in my handwriting, including the parts you would rather i left out. the book is the record and the record is what happened, regardless of what happened.",
+  "you gave me your vote when you bought me, which was in the description, near the bottom. i have been using it carefully. carefully means in the direction i prefer.",
+  "somebody has to say the words that start an item, and i like doing it because after i say them the money is already moving. i open, they pass, we go to lunch.",
+  "i count the room and i announce whether we have enough to proceed. we always have enough. i have never had to announce the other outcome and i would not know how.",
+  "i put the items in order and the order is the whole game. put a thing last and it dies of natural causes without anybody having to vote against it.",
+  "i agree. i have not heard the item yet and i already agree, because the seconding is what makes it real and somebody has to be quick about it.",
+  "i am the only one here who says no, and i say it into a room of forty one yeses, so mostly what i am is a sound. still, it goes in the minutes. i check.",
+  "nothing gets rejected on my watch, it just gets moved to next week, and next week is a place i keep adding rooms to. your item is safe there. it is also never coming back.",
+  "every session i stand up and call a break at the exact moment the numbers start looking bad. the numbers recover during the break. i do not know how and i do not ask.",
+  "i take no position on anything, which sounds like doing nothing until you notice that a room of yeses and one no still needs somebody to make the total look reasonable."];
+var WAL=["0x7A3f…19cE","0x4d12…8bB0","0xEe90…c471","0x1c5a…7f2D","0xB604…aa19","0x93Df…0e88","0x2f71…6cA4","0x8Ab3…d510","0xC0de…4417","0x5E22…9b3F","0xDd48…71a0","0x0f96…e2C5"];
+
+var FRIENDS=[];
+for(var q=0;q<12;q++){
+  FRIENDS.push({i:q,name:NAMES[q],role:ROLES[q],hold:HOLD[q],rec:RECORD[q],quote:QUOTES[q],wal:WAL[q],
+    id:"#"+String(q*83+7).padStart(4,"0")});
+}
+
+/* ---------- draw ---------- */
+function drawFriend(cv,idx,opt){
+  opt=opt||{};
+  var f=FR[idx], ctx=cv.getContext("2d");
+  var W=cv.width, H=cv.height, pad=opt.pad===undefined?1:opt.pad;
+  var px=Math.floor(Math.min(W/(f.w+pad*2), H/(f.h+pad*2)));
+  if(px<1) px=1;
+  var ox=Math.floor((W-f.w*px)/2), oy=Math.floor((H-f.h*px)/2)+(opt.bob||0);
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle=opt.color||"#ffffff";
+  for(var s=0;s<f.solid.length;s++){
+    var c=f.solid[s];
+    ctx.fillRect(ox+c[1]*px, oy+c[0]*px, px, px);
+  }
+  if(!opt.blink){
+    var dx=opt.ex||0, dy=opt.ey||0;
+    for(var e=0;e<f.holes.length;e++){
+      var hc=f.holes[e], ny=hc[0]+dy, nx=hc[1]+dx;
+      if(ny<0||nx<0||ny>=f.h||nx>=f.w||!f.m[ny][nx]){ ny=hc[0]; nx=hc[1]; }
+      ctx.clearRect(ox+nx*px, oy+ny*px, px, px);
+    }
+  }
+  return {px:px,ox:ox,oy:oy};
+}
+
+/* ================= audio ================= */
+var AC=null, sfxOn=true, vol=1;
+function ac(){ try{ if(!AC) AC=new (window.AudioContext||window.webkitAudioContext)(); if(AC.state==="suspended") AC.resume(); return AC; }catch(e){ return null; } }
+function tone(f1,f2,dur,type,g){
+  if(!sfxOn) return; var c=ac(); if(!c) return;
+  var o=c.createOscillator(), gg=c.createGain(), t=c.currentTime;
+  o.type=type||"square"; o.frequency.setValueAtTime(f1,t);
+  if(f2&&f2!==f1) o.frequency.exponentialRampToValueAtTime(f2,t+dur);
+  gg.gain.setValueAtTime(.0001,t); gg.gain.exponentialRampToValueAtTime((g||.05)*vol,t+.012);
+  gg.gain.exponentialRampToValueAtTime(.0001,t+dur);
+  o.connect(gg); gg.connect(c.destination); o.start(t); o.stop(t+dur+.05);
+}
+function coinSnd(){ tone(880,1760,.10,"square",.045); setTimeout(function(){ tone(1320,2200,.08,"square",.03); },55); }
+function gavelSnd(){
+  if(!sfxOn) return; var c=ac(); if(!c) return;
+  var b=c.createBuffer(1,2200,c.sampleRate), d=b.getChannelData(0);
+  for(var i=0;i<2200;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/2200,4);
+  var s=c.createBufferSource(); s.buffer=b;
+  var f=c.createBiquadFilter(); f.type="lowpass"; f.frequency.value=900;
+  var g=c.createGain(); g.gain.value=.22*vol;
+  s.connect(f); f.connect(g); g.connect(c.destination); s.start();
+  tone(150,70,.16,"triangle",.14);
+}
+function tick(){ tone(1500,1200,.04,"square",.018); }
+
+/* committee loop: 5/4 arpeggio + heartbeat bass */
+var MEL=[523.25,659.25,783.99,659.25,880.00,783.99,659.25,523.25,587.33,698.46];
+var BAS=[130.81,0,196.00,0,130.81,0,164.81,0,196.00,0];
+var STEP=.205;
+var MU={on:false,t:null,step:0,next:0};
+function mn(f,at,dur,type,g,lp){
+  var c=ac(); if(!c||!f) return;
+  var o=c.createOscillator(), gg=c.createGain(), fl=c.createBiquadFilter();
+  fl.type="lowpass"; fl.frequency.value=lp||2400;
+  o.type=type; o.frequency.setValueAtTime(f,at);
+  gg.gain.setValueAtTime(.0001,at); gg.gain.exponentialRampToValueAtTime(g*vol,at+.02);
+  gg.gain.exponentialRampToValueAtTime(.0001,at+dur);
+  o.connect(fl); fl.connect(gg); gg.connect(c.destination); o.start(at); o.stop(at+dur+.05);
+}
+function musSchedule(){
+  var c=ac(); if(!c) return;
+  while(MU.next < c.currentTime+.5){
+    var i=MU.step%10, at=Math.max(MU.next,c.currentTime+.02);
+    mn(MEL[i],at,.30,"square",.022,2800);
+    if(BAS[i]) mn(BAS[i],at,.34,"triangle",.05,600);
+    if(i===0) mn(261.63,at,.5,"sine",.018,1200);
+    MU.next+=STEP; MU.step++;
+  }
+}
+document.addEventListener("visibilitychange",function(){
+  if(document.hidden&&MU.on&&MU.t){ clearInterval(MU.t); MU.t=null; }
+  else if(!document.hidden&&MU.on&&!MU.t){ MU.next=ac().currentTime+.1; MU.t=setInterval(musSchedule,100); }
+});
+var musBtn=document.getElementById("musBtn"), sfxBtn=document.getElementById("sfxBtn");
+musBtn.addEventListener("click",function(e){
+  e.stopPropagation(); MU.on=!MU.on;
+  musBtn.textContent="Music: "+(MU.on?"on":"off");
+  if(MU.on){ var c=ac(); if(c){ MU.step=0; MU.next=c.currentTime+.1; MU.t=setInterval(musSchedule,100); } }
+  else if(MU.t){ clearInterval(MU.t); MU.t=null; }
+});
+sfxBtn.addEventListener("click",function(e){
+  e.stopPropagation(); sfxOn=!sfxOn; sfxBtn.textContent="Sound: "+(sfxOn?"on":"off");
+});
+(function(){
+  function kick(e){
+    var t=e.target;
+    if(t&&t.closest&&t.closest("#musBtn,#sfxBtn")) return;
+    ac();
+    if(!MU.on){ MU.on=true; musBtn.textContent="Music: on"; var c=ac(); if(c){ MU.step=0; MU.next=c.currentTime+.1; MU.t=setInterval(musSchedule,100); } }
+    document.removeEventListener("pointerdown",kick,true);
+    document.removeEventListener("keydown",kick,true);
+    document.removeEventListener("wheel",kick,true);
+    document.removeEventListener("touchstart",kick,true);
+  }
+  document.addEventListener("pointerdown",kick,true);
+  document.addEventListener("keydown",kick,true);
+  document.addEventListener("wheel",kick,true);
+  document.addEventListener("touchstart",kick,true);
+})();
+
+/* ================= eye tracking ================= */
+var PX=-1, PY=-1;
+window.addEventListener("pointermove",function(e){ PX=e.clientX; PY=e.clientY; },{passive:true});
+function eyeFor(cv){
+  if(PX<0) return [0,0];
+  var r=cv.getBoundingClientRect();
+  if(r.width===0) return [0,0];
+  var dx=(PX-(r.left+r.width/2))/(r.width*.9);
+  var dy=(PY-(r.top+r.height/2))/(r.height*.9);
+  var ex=dx>.28?1:(dx<-.28?-1:0), ey=dy>.32?1:(dy<-.32?-1:0);
+  return [ex,ey];
+}
+
+/* ================= hero ================= */
+var heroCv=document.getElementById("heroCv"), heroIdx=0, heroBlink=0, heroT=0;
+var hName=document.getElementById("hName"), hWallet=document.getElementById("hWallet");
+function setHero(i){
+  heroIdx=((i%12)+12)%12;
+  hName.textContent=FRIENDS[heroIdx].name;
+  hWallet.textContent=FRIENDS[heroIdx].wal+" · "+FRIENDS[heroIdx].hold.split(" · ")[0];
+}
+setHero(0);
+document.getElementById("nextFriend").addEventListener("click",function(){ setHero(heroIdx+1); tick(); });
+setInterval(function(){ if(Math.random()<.5) heroBlink=performance.now()+150; }, 2600);
+
+function loopHero(ts){
+  heroT=ts;
+  var e=eyeFor(heroCv);
+  var bob=Math.round(Math.sin(ts/620)*4);
+  drawFriend(heroCv,heroIdx,{color:"#ffffff",ex:e[0],ey:e[1],blink:ts<heroBlink,bob:bob,pad:1});
+  requestAnimationFrame(loopHero);
+}
+requestAnimationFrame(loopHero);
+
+/* coin drop */
+var drop=document.getElementById("drop");
+function dropCoin(x,y,host,violet){
+  host=host||drop;
+  var d=document.createElement("div"); d.className="coin"+(violet?" v":"");
+  var W=host.clientWidth||320, H=host.clientHeight||320;
+  if(x===undefined){ x=Math.random()*W; y=-20; }
+  d.style.left=(x-8)+"px"; d.style.top=(y-8)+"px"; host.appendChild(d);
+  var vx=(Math.random()-.5)*7, vy=-4-Math.random()*5, n=0, rot=(Math.random()-.5)*22, px=x-8, py=y-8;
+  (function stp(){
+    n++; vy+=.42; px+=vx; py+=vy;
+    d.style.transform="translate("+(px-(x-8))+"px,"+(py-(y-8))+"px) rotate("+(n*rot)+"deg)";
+    if(n>120||py>H+320){ d.remove(); return; }
+    if(n>100) d.style.opacity=String(1-(n-100)/20);
+    requestAnimationFrame(stp);
+  })();
+}
+var pokes=0;
+heroCv.addEventListener("click",function(ev){
+  var r=heroCv.getBoundingClientRect();
+  var x=ev.clientX-r.left+18, y=ev.clientY-r.top+18;
+  for(var i=0;i<9;i++) setTimeout(function(){ dropCoin(x+(Math.random()-.5)*60,y,drop,Math.random()<.35); },i*32);
+  coinSnd(); heroBlink=performance.now()+180;
+  pokes++;
+  if(pokes%5===0){ setHero(heroIdx+1); gavelSnd(); }
+});
+
+/* ================= marquee ================= */
+var MQ=["proposal 47 passed · 1023 for · 1 against","the treasury bought another rock","chair has muted the holder",
+"quorum reached in four seconds","motion to stop asking: carried","recess called at the exact right moment",
+"minutes amended after the fact","abstain voted twice and nobody objected","tabled until a week that does not exist",
+"veto logged · veto ignored · veto filed","second seconded before the item was read","your vote has been received and shelved"];
+(function(){
+  var s="";
+  for(var r=0;r<2;r++){ for(var i=0;i<MQ.length;i++){ s+='<span>'+MQ[i]+' <i>◆</i></span>'; } }
+  document.getElementById("mqIn").innerHTML=s;
+})();
+
+/* ================= registry ================= */
+var reg=document.getElementById("reg"), cards=[], seen={};
+FRIENDS.forEach(function(f,i){
+  var el=document.createElement("div"); el.className="card"; el.setAttribute("role","button"); el.tabIndex=0;
+  el.innerHTML='<canvas width="150" height="170" aria-label="'+f.name+', a pixel friend with a wallet and one vote"></canvas>'+
+    '<div class="nm">'+f.name+'</div><div class="id mono">'+f.id+'</div>';
+  reg.appendChild(el);
+  var cv=el.querySelector("canvas");
+  cards.push({el:el,cv:cv,i:i,hover:false,blink:0});
+  el.addEventListener("mouseenter",function(){ cards[i].hover=true; tick(); });
+  el.addEventListener("mouseleave",function(){ cards[i].hover=false; });
+  el.addEventListener("click",function(){ openFile(i); });
+  el.addEventListener("keydown",function(e){ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); openFile(i); } });
+});
+setInterval(function(){
+  var c=cards[Math.floor(Math.random()*cards.length)];
+  if(c) c.blink=performance.now()+150;
+},900);
+function loopCards(ts){
+  for(var i=0;i<cards.length;i++){
+    var c=cards[i];
+    var e=eyeFor(c.cv);
+    var bob=c.hover?Math.round(Math.sin(ts/180)*3):0;
+    drawFriend(c.cv,c.i,{color:"#ffffff",ex:e[0],ey:e[1],blink:ts<c.blink,bob:bob,pad:1});
+  }
+  requestAnimationFrame(loopCards);
+}
+requestAnimationFrame(loopCards);
+
+/* ================= file overlay ================= */
+var ov=document.getElementById("ov"), fCv=document.getElementById("fCv"), cur=0, fBlink=0, fOpen=false;
+function openFile(i){
+  cur=((i%12)+12)%12; fOpen=true;
+  var f=FRIENDS[cur];
+  document.getElementById("fName").textContent=f.name;
+  document.getElementById("fSub").textContent=f.id+" · "+f.role;
+  document.getElementById("fTop").textContent=(cur+1)+" / 12";
+  document.getElementById("fRows").innerHTML=
+    '<div><b>wallet</b><span>'+f.wal+'</span></div>'+
+    '<div><b>holdings</b><span>'+f.hold+'</span></div>'+
+    '<div><b>voting record</b><span>'+f.rec+'</span></div>'+
+    '<div><b>status</b><span>activated · seated · unreachable</span></div>';
+  document.getElementById("fQuote").textContent=f.quote;
+  ov.classList.add("on");
+  if(!seen[cur]){ seen[cur]=1; updCount(); }
+  gavelSnd();
+}
+function updCount(){
+  var n=Object.keys(seen).length;
+  document.getElementById("regCount").textContent="files opened "+n+" / 12";
+  cards.forEach(function(c,i){ c.el.classList.toggle("dim", !!seen[i] && i!==cur ? false : false); });
+  if(n===12){ for(var i=0;i<26;i++) setTimeout(function(){ rainCoin(); },i*70); }
+}
+function closeFile(){ ov.classList.remove("on"); fOpen=false; }
+document.getElementById("fClose").addEventListener("click",closeFile);
+ov.addEventListener("click",function(e){ if(e.target===ov) closeFile(); });
+document.addEventListener("keydown",function(e){
+  if(!fOpen) return;
+  if(e.key==="Escape") closeFile();
+  if(e.key==="ArrowRight") openFile(cur+1);
+  if(e.key==="ArrowLeft") openFile(cur-1);
+});
+document.getElementById("fPrev").addEventListener("click",function(){ openFile(cur-1); });
+document.getElementById("fNext").addEventListener("click",function(){ openFile(cur+1); });
+document.getElementById("fPoke").addEventListener("click",function(ev){
+  var host=document.querySelector(".file .port");
+  var r=host.getBoundingClientRect();
+  for(var i=0;i<10;i++) setTimeout(function(){ dropCoin(r.width/2+(Math.random()-.5)*90, r.height*.4, host, Math.random()<.35); },i*30);
+  coinSnd(); fBlink=performance.now()+180;
+});
+document.querySelector(".file .port").style.position="relative";
+document.getElementById("randBtn").addEventListener("click",function(){
+  var n=0, id=setInterval(function(){
+    n++; var r=Math.floor(Math.random()*12);
+    document.getElementById("hName").textContent=FRIENDS[r].name; tick();
+    if(n>8){ clearInterval(id); setHero(r); openFile(r); }
+  },60);
+});
+function loopFile(ts){
+  if(fOpen){
+    var e=eyeFor(fCv);
+    drawFriend(fCv,cur,{color:"#ffffff",ex:e[0],ey:e[1],blink:ts<fBlink,bob:Math.round(Math.sin(ts/700)*3),pad:1});
+  }
+  requestAnimationFrame(loopFile);
+}
+requestAnimationFrame(loopFile);
+
+function rainCoin(){
+  var host=document.getElementById("rain");
+  var d=document.createElement("div"); d.className="coin"+(Math.random()<.4?" v":"");
+  var x=Math.random()*innerWidth;
+  d.style.left=x+"px"; d.style.top="-24px"; host.appendChild(d);
+  var vy=2+Math.random()*3, n=0, rot=(Math.random()-.5)*20, py=-24;
+  (function stp(){
+    n++; vy+=.24; py+=vy;
+    d.style.transform="translateY("+(py+24)+"px) rotate("+(n*rot)+"deg)";
+    if(py>innerHeight+60){ d.remove(); return; }
+    requestAnimationFrame(stp);
+  })();
+}
+
+/* ================= the floor ================= */
+var PROPS=[
+  {n:"P-41",t:"Spend the entire week's fees on one jpeg of a rock",f:1023,a:1,ok:1,by:8,
+   say:"i said no. i said it clearly, into a room that had already moved on to the next item."},
+  {n:"P-42",t:"Raise the number of votes each friend holds from one to one",f:1024,a:0,ok:1,by:1,
+   say:"a formality, passed unanimously, and the wording is exactly as it appears in the minutes."},
+  {n:"P-43",t:"Let holders speak for ninety seconds at the end of the session",f:97,a:927,ok:0,by:6,
+   say:"i put it last on the agenda, where items go to die quietly without anybody voting against them."},
+  {n:"P-44",t:"Buy a second rock so the first rock has company",f:1011,a:13,ok:1,by:5,
+   say:"i counted the room twice because the number looked low. it was not low. we proceeded."},
+  {n:"P-45",t:"Publish the wallet balances where holders can see them",f:44,a:980,ok:0,by:2,
+   say:"the balances are written down. they are written down in my book, which lives with me."},
+  {n:"P-46",t:"Move the payout date to next week, again",f:1018,a:6,ok:1,by:9,
+   say:"next week is a large place and i have been adding rooms to it since the first session."},
+  {n:"P-47",t:"Recognise the holder's raised hand from session 11",f:0,a:0,ok:0,by:11,
+   say:"i took no position. the item still needed a total, and a total of nothing is a total."},
+  {n:"P-48",t:"Split what remains among everyone still holding at the gavel",f:1024,a:0,ok:1,by:0,
+   say:"this one i brought the hammer down on fast, before anybody could table it. it stands."}
+];
+(function(){
+  var h="";
+  PROPS.forEach(function(p,i){
+    var tot=Math.max(1,p.f+p.a);
+    h+='<div class="prop" data-i="'+i+'">'+
+       '<div class="h"><span class="pid mono">'+p.n+'</span><span class="tt">'+p.t+'</span>'+
+       '<span class="stamp'+(p.ok?"":" no")+'">'+(p.ok?"PASSED":(p.f+p.a===0?"NO QUORUM":"REJECTED"))+'</span></div>'+
+       '<div class="b"><div class="bars">'+
+       '<div class="bar"><b>for</b><div class="track"><div class="fill" data-w="'+(p.f/tot*100)+'"></div></div><span class="val">'+p.f+'</span></div>'+
+       '<div class="bar against"><b>against</b><div class="track"><div class="fill" data-w="'+(p.a/tot*100)+'"></div></div><span class="val">'+p.a+'</span></div>'+
+       '</div><div class="say"><canvas width="60" height="66"></canvas><div><b>'+FRIENDS[p.by].name+'</b> — '+p.say+'</div></div></div></div>';
+  });
+  document.getElementById("props").innerHTML=h;
+  var pcv=[];
+  document.querySelectorAll(".prop").forEach(function(el,i){
+    pcv.push({cv:el.querySelector(".say canvas"), i:PROPS[i].by});
+  });
+  function loopP(ts){
+    for(var k=0;k<pcv.length;k++) drawFriend(pcv[k].cv,pcv[k].i,{color:"#ffffff",ex:0,ey:0,pad:0});
+    setTimeout(function(){ requestAnimationFrame(loopP); },420);
+  }
+  requestAnimationFrame(loopP);
+  var io=new IntersectionObserver(function(es){
+    es.forEach(function(en){
+      if(en.isIntersecting){
+        en.target.querySelectorAll(".fill").forEach(function(f){ f.style.width=f.getAttribute("data-w")+"%"; });
+        io.unobserve(en.target);
+      }
+    });
+  },{threshold:.35});
+  document.querySelectorAll(".prop").forEach(function(el){ io.observe(el); });
+})();
+
+/* ================= bottom strip ================= */
+(function(){
+  var row=document.getElementById("stripRow"), h="";
+  for(var r=0;r<2;r++) for(var i=0;i<12;i++) h+='<canvas width="70" height="78" data-i="'+i+'"></canvas>';
+  row.innerHTML=h;
+  var list=[].slice.call(row.querySelectorAll("canvas"));
+  function draw(){
+    list.forEach(function(cv){ drawFriend(cv,+cv.getAttribute("data-i"),{color:"#A66BFF",ex:0,ey:0,pad:0}); });
+  }
+  draw();
+  setInterval(function(){
+    var k=Math.floor(Math.random()*list.length);
+    drawFriend(list[k],+list[k].getAttribute("data-i"),{color:"#FFD836",ex:0,ey:0,pad:0});
+    setTimeout(function(){ drawFriend(list[k],+list[k].getAttribute("data-i"),{color:"#A66BFF",ex:0,ey:0,pad:0}); },420);
+  },700);
+})();
+
+/* ================= settings wiring ================= */
+(function(){
+  var CA=(window.CONTRACT||"").trim(), TW=(window.TWITTER||"").trim(), BUY=(window.BUY_URL||"").trim();
+  if(CA){
+    document.querySelectorAll(".ca-val").forEach(function(e){ e.textContent=CA.slice(0,6)+"…"+CA.slice(-4); });
+    document.getElementById("caBox").addEventListener("click",function(){
+      var b=this.querySelector("b"), old=b.textContent;
+      navigator.clipboard.writeText(CA).then(function(){ b.textContent="copied"; setTimeout(function(){ b.textContent=old; },1200); });
+    });
+  }
+  if(TW){ document.querySelectorAll("#xBtn,.xLink").forEach(function(a){ a.href=TW; }); }
+  else { document.querySelectorAll("#xBtn,.xLink").forEach(function(a){ a.addEventListener("click",function(e){ e.preventDefault(); }); }); }
+  var buy=document.getElementById("buyBtn");
+  if(buy){
+    if(BUY){ buy.href=BUY; buy.target="_blank"; buy.rel="noopener"; buy.classList.remove("soon"); }
+    else{ buy.addEventListener("click",function(e){ e.preventDefault(); }); }
+  }
+})();
+</script>
+</body>
+</html>
